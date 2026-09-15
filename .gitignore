@@ -1,0 +1,15 @@
+report/*
+!report/.gitkeep
+*.pyc
+__pycache__/
+.venv/
+venv/
+.DS_Store
+.env
+secrets/
+
+# APK ada di apk/ - taruh file APK-mu sendiri di situ, lalu git add -f kalau
+# mau di-commit (lihat README bagian "APK"). Sengaja tidak ada default
+# allow-list nama file di sini karena APK-nya harus kamu sediakan sendiri.
+*.apk
+!apk/.gitkeep

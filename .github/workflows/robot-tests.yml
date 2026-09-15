@@ -1,0 +1,65 @@
+name: Robot Framework CI (Android)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '0 18 * * *'
+
+jobs:
+  login-tests:
+    # Android emulator butuh hardware acceleration (HAXM) yang cuma tersedia
+    # di runner macOS di GitHub-hosted runners.
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js (for Appium)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Appium + UiAutomator2 driver
+        run: |
+          npm install -g appium
+          appium driver install uiautomator2
+
+      - name: Start Appium server
+        run: appium --port 4723 > appium.log 2>&1 &
+
+      - name: Run Robot Framework login tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          script: |
+            adb install -r "$(ls apk/*.apk | head -n1)"
+            robot --outputdir report testcase/
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-report
+          path: report/
+
+      - name: Upload Appium server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-log
+          path: appium.log
