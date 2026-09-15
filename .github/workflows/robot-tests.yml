@@ -11,8 +11,11 @@ on:
 
 jobs:
   login-tests:
-    # Android emulator butuh hardware acceleration (HAXM) yang cuma tersedia
-    # di runner macOS di GitHub-hosted runners.
+    # Android emulator butuh hardware acceleration yang cuma tersedia di
+    # runner macOS. Catatan: macos-latest sekarang Apple Silicon (arm64),
+    # jadi arch emulator di bawah HARUS arm64-v8a - kalau dipaksa x86_64,
+    # emulator jalan tanpa acceleration (software emulation) dan bisa
+    # 20-30+ menit atau timeout.
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -44,7 +47,7 @@ jobs:
         with:
           api-level: 30
           target: google_apis
-          arch: x86_64
+          arch: arm64-v8a
           profile: pixel_5
           script: |
             adb install -r "$(ls apk/*.apk | head -n1)"
